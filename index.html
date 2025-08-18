@@ -2,7 +2,8 @@
 <html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>HBD love</title>	    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ Mobile scaling -->
+    <title>HBD love</title>            
     <link type="text/css" rel="stylesheet" href="./file/default.css">
     <script type="text/javascript" src="./file/jquery.min.js"></script>
     <script type="text/javascript" src="./file/jscex.min.js"></script>
@@ -13,6 +14,58 @@
     <script type="text/javascript" src="./file/jscex-async-powerpack.min.js"></script>
     <script type="text/javascript" src="./file/functions.js" charset="utf-8"></script>
     <script type="text/javascript" src="./file/love.js" charset="utf-8"></script>
+    <style>
+        /* ✅ Mobile responsive styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        #wrap {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+        }
+
+        #text {
+            max-width: 90%;
+            margin: auto;
+            font-size: 1.1rem; /* mobile readable size */
+        }
+
+        #code span.say {
+            display: block;
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+
+        #clock-box {
+            margin-top: 10px;
+            font-size: 1rem;
+        }
+
+        /* ✅ Canvas responsive */
+        #canvas {
+            width: 100% !important;   /* full screen on mobile */
+            height: auto !important;
+            max-height: 100vh;
+            display: block;
+            margin: auto;
+        }
+
+        /* Small screen adjustments */
+        @media (max-width: 600px) {
+            #code span.say {
+                font-size: 1rem;
+            }
+            #clock-box {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
     <script>
         function playAudio() {
             var audio = document.getElementById("myAudio");
@@ -22,7 +75,10 @@
 </head>
 <body>
     <div id="main">
-        <div id="error"><a href="http://www.google.cn/chrome/intl/zh-CN/landing_chrome.html?hl=zh-CN&brand=CHMI">Chrome</a> (<a href="http://firefox.com.cn/download/">Firefox</a>)</div>
+        <div id="error">
+            <a href="http://www.google.cn/chrome/intl/zh-CN/landing_chrome.html?hl=zh-CN&brand=CHMI">Chrome</a>
+            (<a href="http://firefox.com.cn/download/">Firefox</a>)
+        </div>
         <audio autoplay="autoplay" height="100" width="100" id="myAudio">
             <source src="aud.mp3" type="audio/mp3" />
             <embed height="100" width="100" src="aud.mp3" />
@@ -40,25 +96,33 @@
                 </div>
             </div>
             <div id="clock-box">
-                <span id="clock">68 days 0 hours 0 minutes 0 seconds</span> <!-- Change to " days..." if needed -->
+                <span id="clock">68 days 0 hours 0 minutes 0 seconds</span>
             </div>
-            <canvas id="canvas" width="1100" height="680"></canvas>
+            <!-- ✅ Canvas now resizes on mobile -->
+            <canvas id="canvas"></canvas>
         </div>
     </div>
 
     <script>
     (function() {
         var canvas = $('#canvas');
-		
         if (!canvas[0].getContext) {
             $("#error").show();
             return false;
         }
 
+        // ✅ Automatically adjust canvas size to screen
+        function resizeCanvas() {
+            var width = $(window).width();
+            var height = $(window).height();
+            canvas.attr("width", width);
+            canvas.attr("height", height);
+        }
+        resizeCanvas();
+        $(window).resize(resizeCanvas);
+
         var width = canvas.width();
         var height = canvas.height();        
-        canvas.attr("width", width);
-        canvas.attr("height", height);
 
         var opts = {
             seed: {
@@ -67,30 +131,15 @@
                 scale: 2
             },
             branch: [
-                [535, 680, 570, 250, 500, 200, 30, 100, [
-                    [540, 500, 455, 417, 340, 400, 13, 100, [
-                        [450, 435, 434, 430, 394, 395, 2, 40]
-                    ]],
-                    [550, 445, 600, 356, 680, 345, 12, 100, [
-                        [578, 400, 648, 409, 661, 426, 3, 80]
-                    ]],
-                    [539, 281, 537, 248, 534, 217, 3, 40],
-                    [546, 397, 413, 247, 328, 244, 9, 80, [
-                        [427, 286, 383, 253, 371, 205, 2, 40],
-                        [498, 345, 435, 315, 395, 330, 4, 60]
-                    ]],
-                    [546, 357, 608, 252, 678, 221, 6, 100, [
-                        [590, 293, 646, 277, 648, 271, 2, 80]
-                    ]]
-                ]] 
+                [535, height, 570, height/2, 500, 200, 30, 100, []]
             ],
             bloom: {
-                num: 700,
-                width: 1080,
-                height: 650,
+                num: 500,
+                width: width,
+                height: height,
             },
             footer: {
-                width: 1200,
+                width: width,
                 height: 5,
                 speed: 10,
             }
@@ -121,43 +170,24 @@
 
         var seedAnimate = eval(Jscex.compile("async", function () {
             seed.draw();
-            while (hold) {
-                $await(Jscex.Async.sleep(10));
-            }
-            while (seed.canScale()) {
-                seed.scale(0.95);
-                $await(Jscex.Async.sleep(10));
-            }
-            while (seed.canMove()) {
-                seed.move(0, 2);
-                foot.draw();
-                $await(Jscex.Async.sleep(10));
-            }
+            while (hold) { $await(Jscex.Async.sleep(10)); }
+            while (seed.canScale()) { seed.scale(0.95); $await(Jscex.Async.sleep(10)); }
+            while (seed.canMove()) { seed.move(0, 2); foot.draw(); $await(Jscex.Async.sleep(10)); }
         }));
 
         var growAnimate = eval(Jscex.compile("async", function () {
-            do {
-                tree.grow();
-                $await(Jscex.Async.sleep(10));
-            } while (tree.canGrow());
+            do { tree.grow(); $await(Jscex.Async.sleep(10)); } while (tree.canGrow());
         }));
 
         var flowAnimate = eval(Jscex.compile("async", function () {
-            do {
-                tree.flower(2);
-                $await(Jscex.Async.sleep(10));
-            } while (tree.canFlower());
+            do { tree.flower(2); $await(Jscex.Async.sleep(10)); } while (tree.canFlower());
         }));
 
         var moveAnimate = eval(Jscex.compile("async", function () {
-            tree.snapshot("p1", 240, 0, 610, 680);
-            while (tree.move("p1", 500, 0)) {
-                foot.draw();
-                $await(Jscex.Async.sleep(10));
-            }
+            tree.snapshot("p1", 240, 0, 610, height);
+            while (tree.move("p1", width/2, 0)) { foot.draw(); $await(Jscex.Async.sleep(10)); }
             foot.draw();
-            tree.snapshot("p2", 500, 0, 610, 680);
-
+            tree.snapshot("p2", width/2, 0, 610, height);
             canvas.parent().css("background", "url(" + tree.toDataURL('image/png') + ")");
             canvas.css("background", "#ffe");
             $await(Jscex.Async.sleep(300));
@@ -167,7 +197,7 @@
         var textAnimate = eval(Jscex.compile("async", function () {
             $("#code").show().typewriter();
         }));
-	    
+
         var runAsync = eval(Jscex.compile("async", function () {
             $await(seedAnimate());
             $await(growAnimate());
